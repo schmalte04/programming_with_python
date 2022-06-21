@@ -17,54 +17,59 @@ ideal_input = pd.read_csv('data/ideal.csv')
 #metadata_obj = db.MetaData()
 #train_input.to_sql('train_data', engine)
 
-df_results_best_function= pd.DataFrame({'y1': ["NaN"],'y2': ["NaN"],'y3': ["NaN"],'y4': ["NaN"]}, index=['Best_Function'])
+df_results_best_function= pd.DataFrame({'y1': ["NaN","NaN","NaN"],'y2': ["NaN","NaN","NaN"],'y3': ["NaN","NaN","NaN"],'y4': ["NaN","NaN","NaN"]}, index=['Best_Function','MaxDeviation',"ClassificationThreshold"])
 
-df_least_deviation = pd.DataFrame(index=ideal_input.columns, columns=["Sum_Squared_Deviation"])
+df_least_deviation = pd.DataFrame(index=ideal_input.columns[1:], columns=["Sum_Squared_Deviation","Deviation"])
 
 train_set = df_results_best_function.columns
+ideal_function_columns = ['x']
 
 for e in train_set: 
 
         l = ideal_input.columns
+        
         for i in l[1:]:
-            df_least_deviation.Sum_Squared_Deviation[i] = sum((train_input[e]-ideal_input[i])**2)    
 
-        df_least_deviation['Sum_Squared_Deviation'] = pd.to_numeric(df_least_deviation['Sum_Squared_Deviation'])
-        df_results_best_function[e] = df_least_deviation['Sum_Squared_Deviation'].idxmin()
+            df_least_deviation.Sum_Squared_Deviation[i] = sum((np.subtract(train_input[e],ideal_input[i])) **2)    
+            df_least_deviation.Deviation[i] = (np.subtract(train_input[e],ideal_input[i]))   
+        
+        df_results_best_function.loc['Best_Function',e] = df_least_deviation['Sum_Squared_Deviation'].astype('float64').idxmin()
+       
+        ideal_function_columns.append(df_results_best_function.loc['Best_Function',e])
+
+        df_deviations = pd.DataFrame({'train': train_input[e], 'ideal_function': ideal_input[df_least_deviation['Sum_Squared_Deviation'].astype('float64').idxmin()], 'deviation': np.subtract(train_input[e],ideal_input[df_least_deviation['Sum_Squared_Deviation'].astype('float64').idxmin()])})
+       
+        df_results_best_function.loc['MaxDeviation',e] = df_deviations['deviation'].max()
+        df_results_best_function.loc['ClassificationThreshold',e] = df_deviations['deviation'].max()*math.sqrt(2)
+
+       
+
+SetIdealFunctionData = ideal_input.loc[:,ideal_function_columns]
+
+test_input = test_input.merge(SetIdealFunctionData, on='x', how='left')
+
+test_input['Classifier'] = "NaN"
+
+#for x_point in test_input.index:
+        
 
 
+l = ideal_input.columns
+        
+for i in l[1:]:
 
+    print(i)
 
-#### Now check if the chosen functions fullfill the test requirements (max dev shall not exceed the max dev of test with ideal function by factor sqrt(2))
+    for x_point in test_input.index:
 
-columns_best_functions = df_results_best_function.columns
+        test_dev = abs(np.subtract(test_input.y,test_input.iloc[:,2]))
 
-for index in range(df_results_best_function.shape[1]):
-    
-    print(index)
-    print(df_results_best_function.iloc[0,index])
+        print(test_dev.max())
 
-    ideal_function= ideal_input.loc[:, ['x', df_results_best_function.iloc[0,index]]] 
-    ### Map the 3 regressions by x using the merge function
-    
-    print(train_input)
+        if test_dev.max()<df_results_best_function.loc['ClassificationThreshold','y1']:
+            print("smaller then threshold")
+            test_input[x_point,'Classifier'] = 'y1'
+        else:
+            print("not smaller then threshold")
 
-    mapping_y1 = test_input.merge(ideal_function, on='x', how='left')
-    mapping_y1 = mapping_y1.merge(train_input.iloc[:,[0,index+1]],on='x', how='left')
-
-    #mapping_y1 = mapping_y1.assign(deviation_y21=lambda x: (x.y1-x), deviation_test=lambda x: (x['y']))
-
-    mapping_y1['dev_ideal_function'] = mapping_y1.iloc[:,3] - mapping_y1.iloc[:,2]
-    mapping_y1['dev_test_function'] = mapping_y1.iloc[:,3] - mapping_y1.iloc[:,1]
-
-    max_ideal_function = mapping_y1['dev_ideal_function'].max()
-    max_test_function = mapping_y1['dev_test_function'].max()
-
-    print(max_ideal_function)
-    print(max_test_function)
-
-    if  max_ideal_function/max_test_function < math.sqrt(2):
-        print("Result can be assigend and fullfills the criteria")
-    
-    else:
-        print("Result does not fulfill the criteria")
+print(test_input)
