@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import unittest
+from functions import ClassifierFunction
 
 
 #### Frist step: Read the CSV files and store them as objects
@@ -42,34 +43,17 @@ for e in train_set:
         df_results_best_function.loc['MaxDeviation',e] = df_deviations['deviation'].max()
         df_results_best_function.loc['ClassificationThreshold',e] = df_deviations['deviation'].max()*math.sqrt(2)
 
-       
-
+           
 SetIdealFunctionData = ideal_input.loc[:,ideal_function_columns]
 
 test_input = test_input.merge(SetIdealFunctionData, on='x', how='left')
 
 test_input['Classifier'] = "NaN"
-
-#for x_point in test_input.index:
-        
+test_input['Deviation'] = "NaN" 
 
 
-l = ideal_input.columns
-        
-for i in l[1:]:
+### loop over ideal functions and check if classifier of test set is within threshold
 
-    print(i)
 
-    for x_point in test_input.index:
-
-        test_dev = abs(np.subtract(test_input.y,test_input.iloc[:,2]))
-
-        print(test_dev.max())
-
-        if test_dev.max()<df_results_best_function.loc['ClassificationThreshold','y1']:
-            print("smaller then threshold")
-            test_input[x_point,'Classifier'] = 'y1'
-        else:
-            print("not smaller then threshold")
-
-print(test_input)
+Classifier_Results = ClassifierFunction(test_input,df_results_best_function)
+print(Classifier_Results.to_markdown())
