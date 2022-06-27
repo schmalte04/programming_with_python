@@ -1,3 +1,4 @@
+from statistics import mean, median
 import pandas as pd
 import numpy as np
 import math
@@ -26,7 +27,7 @@ def ClassifierFunction(ToClassify, IdealFunction):
     return(ToClassify)
 
 
-def FindIdealFunction(train_input,ideal_input,df_results_best_function,df_least_deviation):
+def FindIdealFunction(train_input,ideal_input,df_results_best_function,df_least_deviation,evaluation):
 
     train_set = df_results_best_function.columns
 
@@ -37,20 +38,33 @@ def FindIdealFunction(train_input,ideal_input,df_results_best_function,df_least_
         for i in l[1:]:
 
             ### Subtract Training Y - Ideal Function Y and calc deviation and the sum of squared deviation
-            df_least_deviation.Sum_Squared_Deviation[i] = sum((np.subtract(train_input[e],ideal_input[i])) **2)    
+            df_least_deviation.Sum_Squared_Deviation[i] = sum((np.subtract(train_input[e],ideal_input[i])) **2)
+            df_least_deviation.Mean_Squared_Deviation[i] = sum((np.subtract(train_input[e],ideal_input[i])) **2)/len(train_input.index)
             df_least_deviation.Deviation[i] = (np.subtract(train_input[e],ideal_input[i]))   
         
         ### Check which Ideal Function has the lowest Sum of Squared Deviations
-        df_results_best_function.loc['Best_Function',e] = df_least_deviation['Sum_Squared_Deviation'].astype('float64').idxmin()
-       
         
+        if evaluation == 'Least Squares':
+            df_results_best_function.loc['Best_Function',e] = df_least_deviation['Sum_Squared_Deviation'].astype('float64').idxmin()
+            df_results_best_function.loc['Sum_Squared_Deviation',e] = df_least_deviation['Sum_Squared_Deviation'].astype('float64').min().round(2)
+        elif evaluation == 'MSE':
+            df_results_best_function.loc['Best_Function',e] = df_least_deviation['Mean_Squared_Deviation'].astype('float64').idxmin()
+
+        df_results_best_function.loc['Least Squares',e] = df_least_deviation['Sum_Squared_Deviation'].astype('float64').min().round(2)
+        df_results_best_function.loc['MSE',e] = df_least_deviation['Mean_Squared_Deviation'].astype('float64').min().round(2)
+
+
 
         df_deviations = pd.DataFrame(
             {'train': train_input[e], 
             'ideal_function': ideal_input[df_least_deviation['Sum_Squared_Deviation'].astype('float64').idxmin()], 
+            'sum_squared_eror': df_least_deviation['Sum_Squared_Deviation'].astype('float64').idxmin(), 
             'deviation': np.subtract(train_input[e],ideal_input[df_least_deviation['Sum_Squared_Deviation'].astype('float64').idxmin()])})
        
+        
+       
         df_results_best_function.loc['MaxDeviation',e] = df_deviations['deviation'].max()
+
         df_results_best_function.loc['ClassificationThreshold',e] = df_deviations['deviation'].max()*math.sqrt(2)
 
     return(df_results_best_function)
@@ -71,12 +85,15 @@ def CreateIdealFunctionHeader(df):
 class utility:
 
     def __init__(self, csvPath):
-        # csvpath param represents the input-data/filename
-        # Here we are parsing the csv file into list of dataList and later iterate the object to get details
-        # We need specific structure for csv in which 1st column is x and following column is y values
+       
+        ''' 
+        function to read csv files based on a given file path csvPath
+        1) Create empty dataframe
+        2) Read CSV Files and save in the precreated dataframe
+        '''
+
         self.dataFrames = []
 
-        # The csv is being read by the Panda module and turned into a dataframe
         try:
             self.csv = pd.read_csv(csvPath)
         except FileNotFoundError:
@@ -85,27 +102,42 @@ class utility:
 
 
 def toSql(obj, fileName, suffix):
-        ###
-        # This function accepts the filename and that is the name the db gets
-        # the same function has suffix to specify based on original col name
-        # Also, if the db file already exist in that case it will be replaced with new one
-        # Here we are using sqlalchemy to handle all db related operations
-        ###
 
+    try:   
+       # Create the database engine with SQLAlchemy based on the given fileName
         engineDB = db.create_engine('sqlite:///{}.db'.format(fileName), echo=False)
+    except:
+        print("Could not create SQL Engine, check inputs")
 
-        # save file to db
+    try:
+        # save file to db with a pre defined 
         csvDataCopied = obj.copy()
         csvDataCopied.columns = [name.capitalize() + suffix for name in csvDataCopied.columns]
         csvDataCopied.set_index(csvDataCopied.columns[0], inplace=True)
 
+        '''
+        Uploading the respective object to a sql database
+        '''
         csvDataCopied.to_sql(
             fileName,
             engineDB,
             if_exists="replace",
             index=True,
         )
+    except: 
+        print("Could not upload csv files to database")
 
+
+
+def DataDescription(obj):
+     
+    result = pd.DataFrame(data={'Maximum': [0], 'Minimum': [0], 'Mean': [0],  'Median': [0]})
+    result.loc[:,'Maximum']=obj.max()
+    result.loc[:,'Minimum']=obj.min()
+    result.loc[:,'Mean']=obj.mean()
+    result.loc[:,'Median']=obj.median()
+
+    return result
 
 
 def createGraphFromTwoFunctions(scatterFunction, lineFunction):
@@ -118,8 +150,4 @@ def createGraphFromTwoFunctions(scatterFunction, lineFunction):
     functionTwoDataframe = lineFunction.dataframe
     functionTwoName = lineFunction.name
 
-    graphPlot = figure(title="Graph for train model {} vs ideal {}.".format(functionOneName, functionTwoName),
-               x_axis_label='x', y_axis_label='y')
-    graphPlot.scatter(functionOneDataframe["x"], functionOneDataframe["y"], fill_color="green", legend_label="Train")
-    graphPlot.line(functionTwoDataframe["x"], functionTwoDataframe["y"], legend_label="Ideal", line_width=5)
-    return graphPlot
+  

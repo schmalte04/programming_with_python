@@ -11,6 +11,9 @@ from functions import utility
 from functions import toSql
 from bokeh.plotting import figure, output_file, show
 from bokeh.layouts import row, column
+from functions import DataDescription
+from plots import graphTrainIdeal
+from plots import CreateScatterPlotsTrain
 
 if __name__ == '__main__':
 
@@ -28,33 +31,45 @@ if __name__ == '__main__':
     toSql(obj=train_input,fileName="training", suffix=" (training function)")
 
 
+### Desribe datasets
+## scatterplot
+
+##
+print(DataDescription(train_input.iloc[:,1]))
+print(DataDescription(train_input.iloc[:,2]))
+print(DataDescription(train_input.iloc[:,3]))
+print(DataDescription(train_input.iloc[:,4]))
+
+
+
 ### Prepare Result dataframes to be passed to the function 
-df_results_best_function= pd.DataFrame({'y1': ["NaN","NaN","NaN"],'y2': ["NaN","NaN","NaN"],'y3': ["NaN","NaN","NaN"],'y4': ["NaN","NaN","NaN"]}, index=['Best_Function','MaxDeviation',"ClassificationThreshold"])
-df_least_deviation = pd.DataFrame(index=ideal_input.columns[1:], columns=["Sum_Squared_Deviation","Deviation"])
+df_results_best_function= pd.DataFrame({'y1': ["NaN","NaN","NaN","NaN","NaN"],'y2': ["NaN","NaN","NaN","NaN","NaN"],'y3': ["NaN","NaN","NaN","NaN","NaN"],'y4': ["NaN","NaN","NaN","NaN","NaN"]}, index=['Best_Function','Least Squares',"MSE",'MaxDeviation',"ClassificationThreshold"])
+df_least_deviation = pd.DataFrame(index=ideal_input.columns[1:], columns=["Sum_Squared_Deviation","Mean_Squared_Deviation","Deviation"])
 
-### Calculate Ideal Functions
-df_results_best_function = FindIdealFunction(train_input,ideal_input,df_results_best_function,df_least_deviation)
+### Calculate Ideal Functions based on chosen evaluation method
 
-output_file("training.html")
-        
-# instantiating the figure object
-graph1 = figure(title = "Scatter Plot Training Data",x_axis_label='x', y_axis_label='y')
-graph1.scatter(train_input.loc[:,'x'], train_input.loc[:,'y1'], color='#000000', size=10, legend_label='Training Data Y1')
-graph1.scatter(ideal_input.loc[:,'x'], ideal_input.loc[:,'y21'], color='#0000ff', size=10, legend_label='Ideal Function')
+'''Ideal Function based on MSE'''
+df_results_best_function = FindIdealFunction(train_input,ideal_input,df_results_best_function,df_least_deviation,evaluation = 'MSE')
 
-graph2 = figure(title = "Scatter Plot Training Data",x_axis_label='x', y_axis_label='y')
-graph2.scatter(train_input.loc[:,'x'], train_input.loc[:,'y2'], color='#000000', size=10, legend_label='Training Data Y2')
-graph2.scatter(ideal_input.loc[:,'x'], ideal_input.loc[:,'y10'], color='#0000ff', size=10, legend_label='Ideal Function')
+print(df_results_best_function)
 
-graph3 = figure(title = "Scatter Plot Training Data",x_axis_label='x', y_axis_label='y')
-graph3.scatter(train_input.loc[:,'x'], train_input.loc[:,'y3'], color='#000000', size=10, legend_label='Training Data Y3')
-graph3.scatter(ideal_input.loc[:,'x'], ideal_input.loc[:,'y18'], color='#0000ff', size=10, legend_label='Ideal Function')
+'''Ideal Function based on Least Sqaures'''
+df_results_best_function = FindIdealFunction(train_input,ideal_input,df_results_best_function,df_least_deviation,evaluation = 'Least Squares')
 
-graph4 = figure(title = "Scatter Plot Training Data",x_axis_label='x', y_axis_label='y')
-graph4.scatter(train_input.loc[:,'x'], train_input.loc[:,'y4'], color='#000000', size=10, legend_label='Training Data Y4')
-graph4.scatter(ideal_input.loc[:,'x'], ideal_input.loc[:,'y15'], color='#0000ff', size=10, legend_label='Ideal Function')
+print(df_results_best_function)
 
-show(column(graph1, graph2,graph3,graph4))
+#### create graphs
+
+for f in df_results_best_function:
+    graph=CreateScatterPlotsTrain(train_input,f)
+    show(graph)
+
+
+for f in df_results_best_function:
+    print(f)
+    graph=graphTrainIdeal(train_input,ideal_input,f,df_results_best_function.loc["Best_Function",f],df_results_best_function.loc["Sum_Squared_Deviation",f],df_results_best_function.loc["MSE",f])
+    show(graph)
+
 
 ### Create a Object with x and the names of the four ideal functions to extract them in the next step
 ideal_function_columns = CreateIdealFunctionHeader(df_results_best_function)
@@ -75,12 +90,8 @@ Result is a table with mapped Ideal Functions if possible for each Test Point gi
 Required Inputs: Test_Input and df_results_best_function (result from the first part of the assignment)
 '''
 Classifier_Results = ClassifierFunction(test_input,df_results_best_function)
-print(Classifier_Results.to_markdown())
-
+#print(Classifier_Results.to_markdown())
 
 toSql(obj=Classifier_Results.loc[:,['x','y','Delta Y (test func)','No. of ideal func']],fileName="ClassifiedTest", suffix=" (test classification)")
-
-
-#### last step: vizualize the data properly and save it
 
 
