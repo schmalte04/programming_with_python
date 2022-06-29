@@ -35,10 +35,10 @@ if __name__ == '__main__':
 ### Desribe datasets
 ## scatterplot
 
-# print(DataDescription(train_input.iloc[:,1]))
-# print(DataDescription(train_input.iloc[:,2]))
-# print(DataDescription(train_input.iloc[:,3]))
-# print(DataDescription(train_input.iloc[:,4]))
+print(DataDescription(train_input.iloc[:,1]))
+print(DataDescription(train_input.iloc[:,2]))
+print(DataDescription(train_input.iloc[:,3]))
+print(DataDescription(train_input.iloc[:,4]))
 
 ### Prepare Result dataframes to be passed to the function 
 df_results_best_function= pd.DataFrame({'y1': ["NaN","NaN","NaN","NaN","NaN"],'y2': ["NaN","NaN","NaN","NaN","NaN"],'y3': ["NaN","NaN","NaN","NaN","NaN"],'y4': ["NaN","NaN","NaN","NaN","NaN"]}, index=['Best_Function','Least Squares',"MSE",'MaxDeviation',"ClassificationThreshold"])
@@ -62,7 +62,6 @@ for f in df_results_best_function:
 
 
 for f in df_results_best_function:
-    print(f)
     graph=graphTrainIdeal(train_input,ideal_input,f,df_results_best_function.loc["Best_Function",f],df_results_best_function.loc["Sum_Squared_Deviation",f],df_results_best_function.loc["MSE",f])
     #show(graph)
 
@@ -86,15 +85,16 @@ Result is a table with mapped Ideal Functions if possible for each Test Point gi
 Required Inputs: Test_Input and df_results_best_function (result from the first part of the assignment)
 '''
 
-print(df_results_best_function)
 
 Classifier_Results = ClassifierFunction(test_input,df_results_best_function)
 print(Classifier_Results.to_markdown())
 
+save_results = Classifier_Results.to_csv('results/classifcation_results.csv')
+
 toSql(obj=Classifier_Results.loc[:,['x','y','Delta Y (test func)','No. of ideal func']],fileName="ClassifiedTest", suffix=" (test classification)")
 
 
-''' Plot Ideal function results'''
+''' Plot Ideal function results '''
 
 MappingPlot_y21 = CreateMappingPlots('y21',Classifier_Results,ideal_input)
 MappingPlot_y10 = CreateMappingPlots('y10',Classifier_Results,ideal_input)

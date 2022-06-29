@@ -2,18 +2,6 @@ import unittest
 from functions import FindIdealFunction
 import pandas as pd
 
-class MathOperations(object):
-   def math_addition(self, number_1, number_2):
-       '''
-       provide math addition
-       number_1: first number
-       number_2: second number
-       return: addition of first and second numbers
-       '''
-       result = number_1 - number_2
-       return result
-
-
 class UnitTestFindIdealFunction(unittest.TestCase):
    
 

@@ -26,11 +26,20 @@ def CreateScatterPlotsTrain(trainData,DataSetNumber):
 def CreateMappingPlots(Output,Classifier_Results,Ideal_Input):
     
     FilterResults = Classifier_Results[Classifier_Results['No. of ideal func'] == Output]
-    print(FilterResults)
+    
+    if Output=='y21':
+        save_filtered_classifier = FilterResults.to_csv('results/classifcation_results_y21.csv')
+    elif Output=='y10':
+        save_filtered_classifier = FilterResults.to_csv('results/classifcation_results_y10.csv')
+    elif Output=='y18':
+        save_filtered_classifier = FilterResults.to_csv('results/classifcation_results_y18.csv')
+    elif Output=='y15':
+        save_filtered_classifier = FilterResults.to_csv('results/classifcation_results_y15.csv')
 
-    graph1 = figure(title = "Scatter Plot Mapping Data",x_axis_label='x', y_axis_label='y')
-    graph1.scatter(Ideal_Input.loc[:,'x'], Ideal_Input.loc[:,Output], color='#000000', size=10, legend_label='Ideal Function {}'.format(Output))
-    graph1.scatter(FilterResults.loc[:,'x'], FilterResults.loc[:,Output], color='red', size=12, legend_label='Mapped test points')
+
+    graph1 = figure(title = "Scatter Plot Mapping Data",x_axis_label='x', y_axis_label='y',plot_width=600,plot_height=300)
+    graph1.scatter(Ideal_Input.loc[:,'x'], Ideal_Input.loc[:,Output], color='#000000', size=8, legend_label='Ideal Function {}'.format(Output))
+    graph1.scatter(FilterResults.loc[:,'x'], FilterResults.loc[:,Output], color='#ff284d', marker="triangle",size=18, legend_label='Mapped test points')
     graph1.legend.location = "top_left"
     graph1.legend.background_fill_color = "white"
     graph1.legend.background_fill_alpha = 0.0
