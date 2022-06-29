@@ -21,3 +21,19 @@ def CreateScatterPlotsTrain(trainData,DataSetNumber):
     graph1.add_layout(graph1.legend[0], 'above')
 
     return(graph1)
+
+
+def CreateMappingPlots(Output,Classifier_Results,Ideal_Input):
+    
+    FilterResults = Classifier_Results[Classifier_Results['No. of ideal func'] == Output]
+    print(FilterResults)
+
+    graph1 = figure(title = "Scatter Plot Mapping Data",x_axis_label='x', y_axis_label='y')
+    graph1.scatter(Ideal_Input.loc[:,'x'], Ideal_Input.loc[:,Output], color='#000000', size=10, legend_label='Ideal Function {}'.format(Output))
+    graph1.scatter(FilterResults.loc[:,'x'], FilterResults.loc[:,Output], color='red', size=12, legend_label='Mapped test points')
+    graph1.legend.location = "top_left"
+    graph1.legend.background_fill_color = "white"
+    graph1.legend.background_fill_alpha = 0.0
+    graph1.add_layout(graph1.legend[0], 'above')
+
+    return(graph1)

@@ -14,6 +14,7 @@ from bokeh.layouts import row, column
 from functions import DataDescription
 from plots import graphTrainIdeal
 from plots import CreateScatterPlotsTrain
+from plots import CreateMappingPlots
 
 if __name__ == '__main__':
 
@@ -34,13 +35,10 @@ if __name__ == '__main__':
 ### Desribe datasets
 ## scatterplot
 
-##
-print(DataDescription(train_input.iloc[:,1]))
-print(DataDescription(train_input.iloc[:,2]))
-print(DataDescription(train_input.iloc[:,3]))
-print(DataDescription(train_input.iloc[:,4]))
-
-
+# print(DataDescription(train_input.iloc[:,1]))
+# print(DataDescription(train_input.iloc[:,2]))
+# print(DataDescription(train_input.iloc[:,3]))
+# print(DataDescription(train_input.iloc[:,4]))
 
 ### Prepare Result dataframes to be passed to the function 
 df_results_best_function= pd.DataFrame({'y1': ["NaN","NaN","NaN","NaN","NaN"],'y2': ["NaN","NaN","NaN","NaN","NaN"],'y3': ["NaN","NaN","NaN","NaN","NaN"],'y4': ["NaN","NaN","NaN","NaN","NaN"]}, index=['Best_Function','Least Squares',"MSE",'MaxDeviation',"ClassificationThreshold"])
@@ -49,26 +47,24 @@ df_least_deviation = pd.DataFrame(index=ideal_input.columns[1:], columns=["Sum_S
 ### Calculate Ideal Functions based on chosen evaluation method
 
 '''Ideal Function based on MSE'''
-df_results_best_function = FindIdealFunction(train_input,ideal_input,df_results_best_function,df_least_deviation,evaluation = 'MSE')
-
-print(df_results_best_function)
+#df_results_best_function = FindIdealFunction(train_input,ideal_input,df_results_best_function,df_least_deviation,evaluation = 'MSE')
 
 '''Ideal Function based on Least Sqaures'''
 df_results_best_function = FindIdealFunction(train_input,ideal_input,df_results_best_function,df_least_deviation,evaluation = 'Least Squares')
 
-print(df_results_best_function)
+
 
 #### create graphs
 
 for f in df_results_best_function:
     graph=CreateScatterPlotsTrain(train_input,f)
-    show(graph)
+    #show(graph)
 
 
 for f in df_results_best_function:
     print(f)
     graph=graphTrainIdeal(train_input,ideal_input,f,df_results_best_function.loc["Best_Function",f],df_results_best_function.loc["Sum_Squared_Deviation",f],df_results_best_function.loc["MSE",f])
-    show(graph)
+    #show(graph)
 
 
 ### Create a Object with x and the names of the four ideal functions to extract them in the next step
@@ -89,9 +85,20 @@ Result is a table with mapped Ideal Functions if possible for each Test Point gi
 
 Required Inputs: Test_Input and df_results_best_function (result from the first part of the assignment)
 '''
+
+print(df_results_best_function)
+
 Classifier_Results = ClassifierFunction(test_input,df_results_best_function)
-#print(Classifier_Results.to_markdown())
+print(Classifier_Results.to_markdown())
 
 toSql(obj=Classifier_Results.loc[:,['x','y','Delta Y (test func)','No. of ideal func']],fileName="ClassifiedTest", suffix=" (test classification)")
 
 
+''' Plot Ideal function results'''
+
+MappingPlot_y21 = CreateMappingPlots('y21',Classifier_Results,ideal_input)
+MappingPlot_y10 = CreateMappingPlots('y10',Classifier_Results,ideal_input)
+MappingPlot_y18 = CreateMappingPlots('y18',Classifier_Results,ideal_input)
+MappingPlot_y15 = CreateMappingPlots('y15',Classifier_Results,ideal_input)
+
+show(column(MappingPlot_y21,MappingPlot_y10,MappingPlot_y18,MappingPlot_y15))

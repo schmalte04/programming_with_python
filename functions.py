@@ -15,10 +15,10 @@ def ClassifierFunction(ToClassify, IdealFunction):
         for x_point in range(100):
 
             test_point_deviation = abs(np.subtract(ToClassify.y[x_point],ToClassify.iloc[x_point,i]))
-            
-            
+        
 
-            if test_point_deviation.max()<IdealFunction.iloc[2,i-2]:        
+            if test_point_deviation<IdealFunction.iloc[4,i-2]:        
+                
                 ToClassify.iloc[x_point,6] = IdealFunction.iloc[0,i-2]
                 ToClassify.iloc[x_point,7] = test_point_deviation.max().round(2)
             
