@@ -1,0 +1,18 @@
+## This script gives the commands for task 1.3
+
+### Clone the development branch of the project
+git clone --branch development https://github.com/schmalte04/programming_with_python.git
+
+### Add a new function called "regression.py" to the repository 
+### Commit it to the branch development with a commit messsage
+git add regression.py
+git commit -m "This adds the functions regression.py" which are utility functions for the repo
+git push
+
+### In the next step we will open a pull request to add our function regression.py
+## This can either be done directly on the git hoster (here github) via "Create Pull Request" or by using the 
+
+git push -u 
+
+# command which then provides the link to create the pull request.
+# Once the request is open, a team member need to review and finally accept the pull request.
