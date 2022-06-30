@@ -14,7 +14,7 @@ def graphTrainIdeal(
     IdealFunctionName,
     squaredError_LS,
     squaredError_MSE,
-):
+    ):
     graph2 = figure(x_axis_label="x", y_axis_label="y", plot_width=600, plot_height=300)
     graph2.scatter(
         trainData.loc[:, "x"],

@@ -87,11 +87,18 @@ compareEvaluation(df_results_best_function,df_results_best_function_LS)
 df_results_best_function = df_results_best_function_LS
 
 #### create graphs with a for loop iterating through the training sets
+graph_lst=[]
+
 for f in df_results_best_function:
+    print(f)
     graph = CreateScatterPlotsTrain(train_input, f)
-    show(graph)
+    graph_lst.append(graph)
+
+show(column(graph_lst[0],graph_lst[1],graph_lst[2],graph_lst[3]))
 
 #### create graphs with a for loop iterating through the selected ideal functions sets
+
+graph_best_function_lst=[]
 
 for f in df_results_best_function:
     graph = graphTrainIdeal(
@@ -102,7 +109,9 @@ for f in df_results_best_function:
         df_results_best_function.loc["Sum_Squared_Deviation", f],
         df_results_best_function.loc["MSE", f],
     )
-    show(graph)
+    graph_best_function_lst.append(graph)
+show(column(graph_best_function_lst[0],graph_best_function_lst[1],graph_best_function_lst[2],graph_best_function_lst[3]))
+
 
 
 ### Create a Object with x and the names of the four ideal functions to extract them in the next step
